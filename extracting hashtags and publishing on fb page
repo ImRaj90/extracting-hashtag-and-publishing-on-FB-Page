@@ -1,0 +1,42 @@
+import feedparser
+import re
+import facebook
+count=0
+count1=0
+#Faceook connection
+graph = facebook.GraphAPI(access_token="EAAqj5wU098QBAPXWzeZC9qFpA3meIwRcxYjHS3NMUddsMKL9F4ULjmI90eqblfuPz0ZB2ZCupob1hWBvy0ZAAoaP7ZAG2q7rDxxrXNVxZCMjrsVkZAKvvGGGZAyHRjKplh5OL5JBwkbpPHAim1TN9W1x8hIOgULjWtOiCO5dSZCS6ZAZA8vxSOLzGNQSqbnD1lLBOIDROUwZCwcZAngZDZD")
+posts = graph.request('/101913231469038')
+postslist = posts['name']
+print(postslist)
+
+#retreiving hashtags from the feedburner and display recent 3 posts tile, link and hastags
+NewsFeed = feedparser.parse("http://feeds.feedburner.com/Especiallysports")
+for item in NewsFeed.entries:
+    print('Post Title :',item.title)
+    print('Post Link :',item.feedburner_origlink)
+    result = re.findall(r"#(\w+)", item.summary)
+    aces = ["#" + suit for suit in result]
+    hashtags = ' '.join(aces)
+    print('Post hashtags :',hashtags)
+    #publishing posts on Facebook page
+    newpost=graph.put_object("101913231469038", "feed", message=hashtags,link=item.feedburner_origlink)
+    print(newpost['id'])
+    print('')
+    count=count+1
+    if count>2:
+        break
+
+#getting all the posts from Facebook page     
+feed = graph.get_connections("101913231469038", "feed")
+post = feed["data"]
+for item in post:
+    print("item id is",item['id'], "item message", item['message'])
+    count1=count1+1
+    if count1>3:
+        break
+    #delete the required post with user input
+    userinput= input("do you want to delete the post")
+    if userinput=='yes':
+        if graph.delete_object(item['id']):
+            print("successfully deleted")
+    
